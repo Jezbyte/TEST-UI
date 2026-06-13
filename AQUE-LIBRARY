@@ -1,4 +1,4 @@
--- [[ AQUE || PRIVATE UI LIBRARY - RESTORED SMOOTH MULTI-DROPDOWN ANIMATION ]] --
+-- [[ AQUE || PRIVATE UI LIBRARY - RESTORED SMOOTH TOGGLE SLIDING ]] --
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local TextService = game:GetService("TextService")
@@ -167,7 +167,7 @@ function Library:CreateWindow(titleText)
             end)
         end
 
-        -- [[ 2. TOGGLE ]]
+        -- [[ 2. TOGGLE COMPONENT (RESTORED SMOOTH TWEEN SLIDING) ]]
         function Elements:AddToggle(text, default, callback)
             local toggleState = default or false
             local ToggleFrame = Instance.new("TextButton")
@@ -192,10 +192,16 @@ function Library:CreateWindow(titleText)
 
             ToggleFrame.MouseButton1Click:Connect(function()
                 toggleState = not toggleState
+                
+                -- Dynamic targets for sliding and color fade
                 local targetPos = toggleState and UDim2.new(1, -16, 0.5, -7) or UDim2.new(0, 2, 0.5, -7)
                 local targetColor = toggleState and Color3.fromRGB(0, 210, 110) or Color3.fromRGB(45, 50, 60)
-                TweenService:Create(Knob, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = targetPos}):Play()
-                TweenService:Create(SwitchBg, TweenInfo.new(0.2), {BackgroundColor3 = targetColor}):Play()
+                
+                -- Executing the smooth animations
+                local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+                TweenService:Create(Knob, tweenInfo, {Position = targetPos}):Play()
+                TweenService:Create(SwitchBg, TweenInfo.new(0.18), {BackgroundColor3 = targetColor}):Play()
+                
                 pcall(callback, toggleState)
             end)
         end
@@ -289,8 +295,7 @@ function Library:CreateWindow(titleText)
                     OptBtn.TextColor3 = Color3.fromRGB(160, 160, 170)
                     OptBtn.TextSize = 11
                     OptBtn.Font = Enum.Font.GothamMedium
-                    OptBtn.TextXAlignment = Enum.TextXAlignment.Left
-                    OptBtn.Parent = OptionsContainer
+                    OptBtn.TextXAlignment = Enum.TextXAlignment.Left; OptBtn.Parent = OptionsContainer
                     Instance.new("UICorner", OptBtn).CornerRadius = UDim.new(0, 4)
 
                     OptBtn.MouseButton1Click:Connect(function()
@@ -316,7 +321,7 @@ function Library:CreateWindow(titleText)
             return DropdownObject
         end
 
-        -- [[ 4. MULTI-SELECT DROPDOWN COMPONENT (FIXED TWEEN ANIMATION) ]]
+        -- [[ 4. MULTI-SELECT DROPDOWN COMPONENT ]]
         function Elements:AddMultiDropdown(text, options, defaultList, callback)
             local selectedItems = {}
             local currentOptions = options or {}
@@ -429,7 +434,6 @@ function Library:CreateWindow(titleText)
                     OptBtn.MouseButton1Click:Connect(function()
                         selectedItems[opt] = not selectedItems[opt]
                         
-                        -- RESTORED TWEEN ANIMATIONS: Smoothly fades background and checklist tracking lines
                         local tweenDuration = 0.18
                         if selectedItems[opt] then
                             OptBtn.Text = "  ✓   " .. opt
