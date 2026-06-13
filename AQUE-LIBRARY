@@ -1,4 +1,4 @@
--- [[ AQUE || PRIVATE UI LIBRARY - RESTORED SMOOTH TOGGLE SLIDING ]] --
+-- [[ AQUE || PRIVATE UI LIBRARY - INSTANT SNAPPY DROPDOWN TOGGLE ]] --
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local TextService = game:GetService("TextService")
@@ -167,7 +167,7 @@ function Library:CreateWindow(titleText)
             end)
         end
 
-        -- [[ 2. TOGGLE COMPONENT (RESTORED SMOOTH TWEEN SLIDING) ]]
+        -- [[ 2. TOGGLE FRAME ]]
         function Elements:AddToggle(text, default, callback)
             local toggleState = default or false
             local ToggleFrame = Instance.new("TextButton")
@@ -192,12 +192,9 @@ function Library:CreateWindow(titleText)
 
             ToggleFrame.MouseButton1Click:Connect(function()
                 toggleState = not toggleState
-                
-                -- Dynamic targets for sliding and color fade
                 local targetPos = toggleState and UDim2.new(1, -16, 0.5, -7) or UDim2.new(0, 2, 0.5, -7)
                 local targetColor = toggleState and Color3.fromRGB(0, 210, 110) or Color3.fromRGB(45, 50, 60)
                 
-                -- Executing the smooth animations
                 local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
                 TweenService:Create(Knob, tweenInfo, {Position = targetPos}):Play()
                 TweenService:Create(SwitchBg, TweenInfo.new(0.18), {BackgroundColor3 = targetColor}):Play()
@@ -206,7 +203,7 @@ function Library:CreateWindow(titleText)
             end)
         end
 
-        -- [[ 3. DROPDOWN (SINGLE-SELECT) ]]
+        -- [[ 3. DROPDOWN (SINGLE-SELECT - INSTANT OPEN/CLOSE) ]]
         function Elements:AddDropdown(text, options, default, callback)
             local currentChoice = default or "Select..."
             local isOpen = false
@@ -260,12 +257,14 @@ function Library:CreateWindow(titleText)
             OptionLayout.Padding = UDim.new(0, 2)
             OptionLayout.Parent = OptionsContainer
 
+            -- NO SMOOTH SLIDING FOR OPENING/CLOSING FRAME
             local function updateFrameSize()
                 OptionsContainer.Size = UDim2.new(1, -10, 0, #currentOptions * 28)
                 if isOpen then
-                    local targetHeight = 36 + (#currentOptions * 30)
-                    DropdownFrame.Size = UDim2.new(1, -6, 0, targetHeight)
+                    -- Biglang open agad ang frame height (instant size setting)
+                    DropdownFrame.Size = UDim2.new(1, -6, 0, 36 + (#currentOptions * 30))
                 else
+                    -- Biglang sara agad ang frame height
                     DropdownFrame.Size = UDim2.new(1, -6, 0, 32)
                 end
                 UpdateCanvas()
@@ -274,7 +273,7 @@ function Library:CreateWindow(titleText)
             local function toggleDropdown()
                 isOpen = not isOpen
                 local targetRot = isOpen and 180 or 0
-                TweenService:Create(Arrow, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Rotation = targetRot}):Play()
+                Arrow.Rotation = targetRot -- Instant flip din ang arrow symbol
                 updateFrameSize()
             end
 
@@ -321,7 +320,7 @@ function Library:CreateWindow(titleText)
             return DropdownObject
         end
 
-        -- [[ 4. MULTI-SELECT DROPDOWN COMPONENT ]]
+        -- [[ 4. MULTI-SELECT DROPDOWN COMPONENT (INSTANT OPEN/CLOSE) ]]
         function Elements:AddMultiDropdown(text, options, defaultList, callback)
             local selectedItems = {}
             local currentOptions = options or {}
@@ -393,11 +392,14 @@ function Library:CreateWindow(titleText)
                 pcall(callback, list)
             end
 
+            -- NO SMOOTH SLIDING FOR OPENING/CLOSING FRAME
             local function updateFrameSize()
                 OptionsContainer.Size = UDim2.new(1, -10, 0, #currentOptions * 28)
                 if isOpen then
+                    -- Instant open size adjustments
                     DropdownFrame.Size = UDim2.new(1, -6, 0, 36 + (#currentOptions * 30))
                 else
+                    -- Instant close size adjustments
                     DropdownFrame.Size = UDim2.new(1, -6, 0, 32)
                 end
                 UpdateCanvas()
@@ -406,7 +408,7 @@ function Library:CreateWindow(titleText)
             MainBtn.MouseButton1Click:Connect(function()
                 isOpen = not isOpen
                 local targetRot = isOpen and 180 or 0
-                TweenService:Create(Arrow, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Rotation = targetRot}):Play()
+                Arrow.Rotation = targetRot -- Inalis ang arrow flip tween para instant din
                 updateFrameSize()
             end)
 
@@ -434,6 +436,7 @@ function Library:CreateWindow(titleText)
                     OptBtn.MouseButton1Click:Connect(function()
                         selectedItems[opt] = not selectedItems[opt]
                         
+                        -- Panatilihin ang fade color sa checkbox buttons para premium tignan kapag nagchecheck
                         local tweenDuration = 0.18
                         if selectedItems[opt] then
                             OptBtn.Text = "  ✓   " .. opt
