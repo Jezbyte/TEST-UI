@@ -1,4 +1,4 @@
--- [[ AQUE || PRIVATE UI LIBRARY - PRODUCTION READY ]] --
+-- [[ AQUE || PRIVATE UI LIBRARY - RESTORED DROPDOWN EDITION ]] --
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local TextService = game:GetService("TextService")
@@ -26,7 +26,7 @@ function Library:CreateWindow(titleText)
 
     local MainFrame = Instance.new("Frame")
     MainFrame.Name = "MainFrame"
-    MainFrame.Size = UDim2.new(0, 550, 0, 311) -- Original Compact Height
+    MainFrame.Size = UDim2.new(0, 550, 0, 311)
     MainFrame.Position = UDim2.new(0.5, -275, 0.5, -155)
     MainFrame.BackgroundColor3 = Color3.fromRGB(12, 14, 18)
     MainFrame.BackgroundTransparency = 0.1
@@ -35,7 +35,6 @@ function Library:CreateWindow(titleText)
     MainFrame.Parent = AqueLibrary
     Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 4)
 
-    -- Subtle UI Border Outline
     local UIStroke = Instance.new("UIStroke")
     UIStroke.Color = Color3.fromRGB(30, 35, 45)
     UIStroke.Thickness = 1
@@ -43,7 +42,7 @@ function Library:CreateWindow(titleText)
     UIStroke.Parent = MainFrame
 
     local Header = Instance.new("Frame")
-    Header.Size = UDim2.new(1, 0, 0, 26) -- Original Compact Header Height
+    Header.Size = UDim2.new(1, 0, 0, 26)
     Header.BackgroundColor3 = Color3.fromRGB(16, 20, 26)
     Header.BackgroundTransparency = 0.05
     Header.Parent = MainFrame
@@ -92,7 +91,6 @@ function Library:CreateWindow(titleText)
     PagesContainer.Size = UDim2.new(1, -20, 1, -68); PagesContainer.Position = UDim2.new(0, 10, 0, 62)
     PagesContainer.BackgroundTransparency = 1; PagesContainer.Parent = MainFrame
 
-    -- Collapse/Expand feature triggered by Logo click
     TitleIconBtn.MouseButton1Click:Connect(function()
         local tweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Quad)
         TabBar.Visible = not TabBar.Visible; PagesContainer.Visible = TabBar.Visible
@@ -148,14 +146,13 @@ function Library:CreateWindow(titleText)
             UpdateCanvas()
         end)
 
-        -- Auto-open first created Tab
         if #TabContainer:GetChildren() == 2 then 
             TabPill.BackgroundColor3 = Color3.fromRGB(45, 105, 255); TabButton.TextColor3 = Color3.fromRGB(255, 255, 255); Page.Visible = true
         end
 
         local Elements = {}
 
-        -- [[ 1. ADD BUTTON ]]
+        -- [[ 1. BUTTON ]]
         function Elements:AddButton(text, callback)
             local Button = Instance.new("TextButton")
             Button.Size = UDim2.new(1, -6, 0, 32); Button.BackgroundColor3 = Color3.fromRGB(20, 24, 32)
@@ -171,7 +168,7 @@ function Library:CreateWindow(titleText)
             end)
         end
 
-        -- [[ 2. ADD TOGGLE ]]
+        -- [[ 2. TOGGLE ]]
         function Elements:AddToggle(text, default, callback)
             local toggleState = default or false
             local ToggleFrame = Instance.new("TextButton")
@@ -197,36 +194,66 @@ function Library:CreateWindow(titleText)
             ToggleFrame.MouseButton1Click:Connect(function()
                 toggleState = not toggleState
                 local targetPos = toggleState and UDim2.new(1, -16, 0.5, -7) or UDim2.new(0, 2, 0.5, -7)
-                local targetColor = toggleState and Color3.fromRGB(0, 210, 110) or Color3.fromRGB(45, 50, 60)
+                local targetColor = toggleState pointing and Color3.fromRGB(0, 210, 110) or Color3.fromRGB(45, 50, 60)
                 TweenService:Create(Knob, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = targetPos}):Play()
                 TweenService:Create(SwitchBg, TweenInfo.new(0.2), {BackgroundColor3 = targetColor}):Play()
                 pcall(callback, toggleState)
             end)
         end
 
-        -- [[ 3. ADD DROPDOWN ]]
+        -- [[ 3. RESTORED ORIGINAL DROPDOWN COMPONENT ]]
         function Elements:AddDropdown(text, options, default, callback)
             local currentChoice = default or "Select..."
             local isOpen = false
+            
             local DropdownFrame = Instance.new("Frame")
-            DropdownFrame.Size = UDim2.new(1, -6, 0, 32); DropdownFrame.BackgroundColor3 = Color3.fromRGB(20, 24, 32); DropdownFrame.ClipsDescendants = true; DropdownFrame.Parent = Page
+            DropdownFrame.Size = UDim2.new(1, -6, 0, 32)
+            DropdownFrame.BackgroundColor3 = Color3.fromRGB(20, 24, 32)
+            DropdownFrame.ClipsDescendants = true
+            DropdownFrame.Parent = Page
             Instance.new("UICorner", DropdownFrame).CornerRadius = UDim.new(0, 4)
 
             local MainBtn = Instance.new("TextButton")
-            MainBtn.Size = UDim2.new(1, 0, 0, 32); MainBtn.BackgroundTransparency = 1; MainBtn.Text = "  " .. text
-            MainBtn.TextColor3 = Color3.fromRGB(200, 200, 205); MainBtn.TextSize = 12; MainBtn.Font = Enum.Font.GothamMedium; MainBtn.TextXAlignment = Enum.TextXAlignment.Left; MainBtn.Parent = DropdownFrame
+            MainBtn.Size = UDim2.new(1, 0, 0, 32)
+            MainBtn.BackgroundTransparency = 1
+            MainBtn.Text = "  " .. text
+            MainBtn.TextColor3 = Color3.fromRGB(200, 200, 205)
+            MainBtn.TextSize = 12
+            MainBtn.Font = Enum.Font.GothamMedium
+            MainBtn.TextXAlignment = Enum.TextXAlignment.Left
+            MainBtn.Parent = DropdownFrame
 
             local SelectedLabel = Instance.new("TextLabel")
-            SelectedLabel.Size = UDim2.new(0, 0, 1, 0); SelectedLabel.Position = UDim2.new(0, TextService:GetTextSize("  " .. text, 12, Enum.Font.GothamMedium, Vector2.new(1000, 32)).X + 10, 0, 0)
-            SelectedLabel.BackgroundTransparency = 1; SelectedLabel.Text = ": " .. currentChoice; SelectedLabel.TextColor3 = Color3.fromRGB(45, 105, 255); SelectedLabel.TextSize = 12; SelectedLabel.Font = Enum.Font.GothamBold; SelectedLabel.TextXAlignment = Enum.TextXAlignment.Left; SelectedLabel.Parent = MainBtn
+            SelectedLabel.Size = UDim2.new(0, 0, 1, 0)
+            SelectedLabel.Position = UDim2.new(0, TextService:GetTextSize("  " .. text, 12, Enum.Font.GothamMedium, Vector2.new(1000, 32)).X + 10, 0, 0)
+            SelectedLabel.BackgroundTransparency = 1
+            SelectedLabel.Text = ": " .. currentChoice
+            SelectedLabel.TextColor3 = Color3.fromRGB(45, 105, 255)
+            SelectedLabel.TextSize = 12
+            SelectedLabel.Font = Enum.Font.GothamBold
+            SelectedLabel.TextXAlignment = Enum.TextXAlignment.Left
+            SelectedLabel.Parent = MainBtn
 
             local Arrow = Instance.new("TextLabel")
-            Arrow.Size = UDim2.new(0, 32, 0, 32); Arrow.Position = UDim2.new(1, -32, 0, 0); Arrow.BackgroundTransparency = 1; Arrow.Text = "▼"; Arrow.TextColor3 = Color3.fromRGB(120, 120, 130); Arrow.TextSize = 10; Arrow.Font = Enum.Font.GothamBold; Arrow.Parent = MainBtn
+            Arrow.Size = UDim2.new(0, 32, 0, 32)
+            Arrow.Position = UDim2.new(1, -32, 0, 0)
+            Arrow.BackgroundTransparency = 1
+            Arrow.Text = "▼"
+            Arrow.TextColor3 = Color3.fromRGB(120, 120, 130)
+            Arrow.TextSize = 10
+            Arrow.Font = Enum.Font.GothamBold
+            Arrow.Parent = MainBtn
 
             local OptionsContainer = Instance.new("Frame")
-            OptionsContainer.Size = UDim2.new(1, -10, 0, #options * 28); OptionsContainer.Position = UDim2.new(0, 5, 0, 32); OptionsContainer.BackgroundTransparency = 1; OptionsContainer.Parent = DropdownFrame
+            OptionsContainer.Size = UDim2.new(1, -10, 0, #options * 28)
+            OptionsContainer.Position = UDim2.new(0, 5, 0, 32)
+            OptionsContainer.BackgroundTransparency = 1
+            OptionsContainer.Parent = DropdownFrame
+            
             local OptionLayout = Instance.new("UIListLayout")
-            OptionLayout.SortOrder = Enum.SortOrder.LayoutOrder; OptionLayout.Padding = UDim.new(0, 2); OptionLayout.Parent = OptionsContainer
+            OptionLayout.SortOrder = Enum.SortOrder.LayoutOrder
+            OptionLayout.Padding = UDim.new(0, 2)
+            OptionLayout.Parent = OptionsContainer
 
             local function toggleDropdown()
                 isOpen = not isOpen
@@ -241,14 +268,26 @@ function Library:CreateWindow(titleText)
 
             for i, opt in ipairs(options) do
                 local OptBtn = Instance.new("TextButton")
-                OptBtn.Size = UDim2.new(1, 0, 0, 28); OptBtn.BackgroundColor3 = Color3.fromRGB(25, 30, 38); OptBtn.Text = "     " .. opt
-                OptBtn.TextColor3 = Color3.fromRGB(160, 160, 170); OptBtn.TextSize = 11; OptBtn.Font = Enum.Font.GothamMedium; OptBtn.TextXAlignment = Enum.TextXAlignment.Left; OptBtn.Parent = OptionsContainer
+                OptBtn.Size = UDim2.new(1, 0, 0, 28)
+                OptBtn.BackgroundColor3 = Color3.fromRGB(25, 30, 38)
+                OptBtn.Text = "     " .. opt
+                OptBtn.TextColor3 = Color3.fromRGB(160, 160, 170)
+                OptBtn.TextSize = 11
+                OptBtn.Font = Enum.Font.GothamMedium
+                OptBtn.TextXAlignment = Enum.TextXAlignment.Left
+                OptBtn.Parent = OptionsContainer
+                Instance.new("UICorner", OptBtn).CornerRadius = UDim.new(0, 4)
 
-                OptBtn.MouseButton1Click:Connect(function() currentChoice = opt; SelectedLabel.Text = ": " .. currentChoice; pcall(callback, opt); toggleDropdown() end)
+                OptBtn.MouseButton1Click:Connect(function()
+                    currentChoice = opt
+                    SelectedLabel.Text = ": " .. currentChoice
+                    pcall(callback, opt)
+                    toggleDropdown()
+                end)
             end
         end
 
-        -- [[ 4. ADD 20x COOLER SLIDER ]]
+        -- [[ 4. 20x COOLER SLIDER ]]
         function Elements:AddSlider(text, min, max, default, callback)
             local min, max = min or 0, max or 100
             local value = math.clamp(default or min, min, max)
