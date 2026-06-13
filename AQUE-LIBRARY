@@ -1,4 +1,4 @@
--- [[ AQUE || PRIVATE UI LIBRARY - DYNAMIC DROPDOWN UPDATE ]] --
+-- [[ AQUE || PRIVATE UI LIBRARY - MULTI-DROPDOWN UPGRADE ]] --
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local TextService = game:GetService("TextService")
@@ -200,7 +200,7 @@ function Library:CreateWindow(titleText)
             end)
         end
 
-        -- [[ 3. DROPDOWN COMPONENT WITH REFRESH ENGINE ]]
+        -- [[ 3. DROPDOWN (SINGLE-SELECT) ]]
         function Elements:AddDropdown(text, options, default, callback)
             local currentChoice = default or "Select..."
             local isOpen = false
@@ -276,7 +276,6 @@ function Library:CreateWindow(titleText)
 
             local DropdownObject = {}
 
-            -- Core function to render buttons inside container
             local function buildOptions()
                 for _, child in ipairs(OptionsContainer:GetChildren()) do
                     if child:IsA("TextButton") then child:Destroy() end
@@ -304,7 +303,6 @@ function Library:CreateWindow(titleText)
                 updateFrameSize()
             end
 
-            -- [[ REFRESH / UPDATE ENGINE METHOD ]]
             function DropdownObject:Refresh(newOptions, resetSelection)
                 currentOptions = newOptions or {}
                 if resetSelection then
@@ -318,7 +316,154 @@ function Library:CreateWindow(titleText)
             return DropdownObject
         end
 
-        -- [[ 4. 20x COOLER SLIDER ]]
+        -- [[ 4. BRAND NEW MULTI-SELECT DROPDOWN COMPONENT ]]
+        function Elements:AddMultiDropdown(text, options, defaultList, callback)
+            local selectedItems = {}
+            local currentOptions = options or {}
+            local isOpen = false
+
+            -- Pre-load default configurations
+            if defaultList then
+                for _, val in ipairs(defaultList) do
+                    selectedItems[val] = true
+                end
+            end
+
+            local DropdownFrame = Instance.new("Frame")
+            DropdownFrame.Size = UDim2.new(1, -6, 0, 32)
+            DropdownFrame.BackgroundColor3 = Color3.fromRGB(20, 24, 32)
+            DropdownFrame.ClipsDescendants = true
+            DropdownFrame.Parent = Page
+            Instance.new("UICorner", DropdownFrame).CornerRadius = UDim.new(0, 4)
+
+            local MainBtn = Instance.new("TextButton")
+            MainBtn.Size = UDim2.new(1, 0, 0, 32)
+            MainBtn.BackgroundTransparency = 1
+            MainBtn.Text = "  " .. text
+            MainBtn.TextColor3 = Color3.fromRGB(200, 200, 205)
+            MainBtn.TextSize = 12
+            MainBtn.Font = Enum.Font.GothamMedium
+            MainBtn.TextXAlignment = Enum.TextXAlignment.Left
+            MainBtn.Parent = DropdownFrame
+
+            local SelectedLabel = Instance.new("TextLabel")
+            SelectedLabel.Size = UDim2.new(1, -150, 1, 0)
+            SelectedLabel.Position = UDim2.new(0, TextService:GetTextSize("  " .. text, 12, Enum.Font.GothamMedium, Vector2.new(1000, 32)).X + 10, 0, 0)
+            SelectedLabel.BackgroundTransparency = 1
+            SelectedLabel.Text = ": Multiselect..."
+            SelectedLabel.TextColor3 = Color3.fromRGB(0, 210, 110) -- Bright Emerald for Multi indicators
+            SelectedLabel.TextSize = 11
+            SelectedLabel.Font = Enum.Font.GothamBold
+            SelectedLabel.TextXAlignment = Enum.TextXAlignment.Left
+            SelectedLabel.Parent = MainBtn
+
+            local Arrow = Instance.new("TextLabel")
+            Arrow.Size = UDim2.new(0, 32, 0, 32); Arrow.Position = UDim2.new(1, -32, 0, 0)
+            Arrow.BackgroundTransparency = 1; Arrow.Text = "▼"; Arrow.TextColor3 = Color3.fromRGB(120, 120, 130)
+            Arrow.TextSize = 10; Arrow.Font = Enum.Font.GothamBold; Arrow.Parent = MainBtn
+
+            local OptionsContainer = Instance.new("Frame")
+            OptionsContainer.Position = UDim2.new(0, 5, 0, 32)
+            OptionsContainer.BackgroundTransparency = 1
+            OptionsContainer.Parent = DropdownFrame
+            
+            local OptionLayout = Instance.new("UIListLayout")
+            OptionLayout.SortOrder = Enum.SortOrder.LayoutOrder; OptionLayout.Padding = UDim.new(0, 2)
+            OptionLayout.Parent = OptionsContainer
+
+            local function updateUIStatus()
+                local count = 0
+                local list = {}
+                for k, v in pairs(selectedItems) do
+                    if v then count = count + 1 table.insert(list, k) end
+                end
+
+                if count == 0 then
+                    SelectedLabel.Text = ": None Selected"
+                elseif count <= 2 then
+                    SelectedLabel.Text = ": " .. table.concat(list, ", ")
+                else
+                    SelectedLabel.Text = ": (" .. tostring(count) .. ") Selected Items"
+                end
+
+                -- Pakainin ang callback ng format na: {"Offer1", "Offer3"}
+                pcall(callback, list)
+            end
+
+            local function updateFrameSize()
+                OptionsContainer.Size = UDim2.new(1, -10, 0, #currentOptions * 28)
+                if isOpen then
+                    DropdownFrame.Size = UDim2.new(1, -6, 0, 36 + (#currentOptions * 30))
+                else
+                    DropdownFrame.Size = UDim2.new(1, -6, 0, 32)
+                end
+                UpdateCanvas()
+            end
+
+            MainBtn.MouseButton1Click:Connect(function()
+                isOpen = not isOpen
+                local targetRot = isOpen and 180 or 0
+                TweenService:Create(Arrow, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Rotation = targetRot}):Play()
+                updateFrameSize()
+            end)
+
+            local MultiObject = {}
+
+            local function buildList()
+                for _, child in ipairs(OptionsContainer:GetChildren()) do
+                    if child:IsA("TextButton") then child:Destroy() end
+                end
+
+                for i, opt in ipairs(currentOptions) do
+                    local OptBtn = Instance.new("TextButton")
+                    OptBtn.Size = UDim2.new(1, 0, 0, 28)
+                    OptBtn.BackgroundColor3 = selectedItems[opt] and Color3.fromRGB(30, 50, 40) or Color3.fromRGB(25, 30, 38)
+                    OptBtn.Text = selectedItems[opt] and "  ✓   " .. opt or "      " .. opt
+                    OptBtn.TextColor3 = selectedItems[opt] and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 150, 160)
+                    OptBtn.TextSize = 11; OptBtn.Font = Enum.Font.GothamMedium; OptBtn.TextXAlignment = Enum.TextXAlignment.Left; OptBtn.Parent = OptionsContainer
+                    Instance.new("UICorner", OptBtn).CornerRadius = UDim.new(0, 4)
+
+                    -- Checkbox indicators outline
+                    local indicator = Instance.new("Frame")
+                    indicator.Size = UDim2.new(0, 3, 1, 0); indicator.Position = UDim2.new(0, 0, 0, 0)
+                    indicator.BackgroundColor3 = selectedItems[opt] and Color3.fromRGB(0, 210, 110) or Color3.fromRGB(40, 45, 55)
+                    indicator.BorderSizePixel = 0; indicator.Parent = OptBtn
+
+                    OptBtn.MouseButton1Click:Connect(function()
+                        selectedItems[opt] = not selectedItems[opt]
+                        
+                        -- Instant feedback animations
+                        if selectedItems[opt] then
+                            OptBtn.BackgroundColor3 = Color3.fromRGB(30, 50, 40)
+                            OptBtn.Text = "  ✓   " .. opt
+                            OptBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+                            indicator.BackgroundColor3 = Color3.fromRGB(0, 210, 110)
+                        else
+                            OptBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255) -- Hover flash placeholder
+                            OptBtn.Text = "      " .. opt
+                            OptBtn.TextColor3 = Color3.fromRGB(150, 150, 160)
+                            indicator.BackgroundColor3 = Color3.fromRGB(40, 45, 55)
+                            TweenService:Create(OptBtn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(25, 30, 38)}):Play()
+                        end
+                        updateUIStatus()
+                    end)
+                end
+                updateFrameSize()
+            end
+
+            function MultiObject:Refresh(newOptions, resetSelection)
+                currentOptions = newOptions or {}
+                if resetSelection then selectedItems = {} end
+                buildList()
+                updateUIStatus()
+            end
+
+            buildList()
+            updateUIStatus()
+            return MultiObject
+        end
+
+        -- [[ 5. 20x COOLER SLIDER ]]
         function Elements:AddSlider(text, min, max, default, callback)
             local min, max = min or 0, max or 100
             local value = math.clamp(default or min, min, max)
