@@ -1,4 +1,4 @@
--- [[ AQUE || PRIVATE UI LIBRARY - MULTI-DROPDOWN UPGRADE ]] --
+-- [[ AQUE || PRIVATE UI LIBRARY - RESTORED SMOOTH MULTI-DROPDOWN ANIMATION ]] --
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local TextService = game:GetService("TextService")
@@ -316,13 +316,12 @@ function Library:CreateWindow(titleText)
             return DropdownObject
         end
 
-        -- [[ 4. BRAND NEW MULTI-SELECT DROPDOWN COMPONENT ]]
+        -- [[ 4. MULTI-SELECT DROPDOWN COMPONENT (FIXED TWEEN ANIMATION) ]]
         function Elements:AddMultiDropdown(text, options, defaultList, callback)
             local selectedItems = {}
             local currentOptions = options or {}
             local isOpen = false
 
-            -- Pre-load default configurations
             if defaultList then
                 for _, val in ipairs(defaultList) do
                     selectedItems[val] = true
@@ -351,7 +350,7 @@ function Library:CreateWindow(titleText)
             SelectedLabel.Position = UDim2.new(0, TextService:GetTextSize("  " .. text, 12, Enum.Font.GothamMedium, Vector2.new(1000, 32)).X + 10, 0, 0)
             SelectedLabel.BackgroundTransparency = 1
             SelectedLabel.Text = ": Multiselect..."
-            SelectedLabel.TextColor3 = Color3.fromRGB(0, 210, 110) -- Bright Emerald for Multi indicators
+            SelectedLabel.TextColor3 = Color3.fromRGB(0, 210, 110)
             SelectedLabel.TextSize = 11
             SelectedLabel.Font = Enum.Font.GothamBold
             SelectedLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -386,7 +385,6 @@ function Library:CreateWindow(titleText)
                     SelectedLabel.Text = ": (" .. tostring(count) .. ") Selected Items"
                 end
 
-                -- Pakainin ang callback ng format na: {"Offer1", "Offer3"}
                 pcall(callback, list)
             end
 
@@ -423,7 +421,6 @@ function Library:CreateWindow(titleText)
                     OptBtn.TextSize = 11; OptBtn.Font = Enum.Font.GothamMedium; OptBtn.TextXAlignment = Enum.TextXAlignment.Left; OptBtn.Parent = OptionsContainer
                     Instance.new("UICorner", OptBtn).CornerRadius = UDim.new(0, 4)
 
-                    -- Checkbox indicators outline
                     local indicator = Instance.new("Frame")
                     indicator.Size = UDim2.new(0, 3, 1, 0); indicator.Position = UDim2.new(0, 0, 0, 0)
                     indicator.BackgroundColor3 = selectedItems[opt] and Color3.fromRGB(0, 210, 110) or Color3.fromRGB(40, 45, 55)
@@ -432,18 +429,18 @@ function Library:CreateWindow(titleText)
                     OptBtn.MouseButton1Click:Connect(function()
                         selectedItems[opt] = not selectedItems[opt]
                         
-                        -- Instant feedback animations
+                        -- RESTORED TWEEN ANIMATIONS: Smoothly fades background and checklist tracking lines
+                        local tweenDuration = 0.18
                         if selectedItems[opt] then
-                            OptBtn.BackgroundColor3 = Color3.fromRGB(30, 50, 40)
                             OptBtn.Text = "  ✓   " .. opt
                             OptBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-                            indicator.BackgroundColor3 = Color3.fromRGB(0, 210, 110)
+                            TweenService:Create(OptBtn, TweenInfo.new(tweenDuration), {BackgroundColor3 = Color3.fromRGB(30, 50, 40)}):Play()
+                            TweenService:Create(indicator, TweenInfo.new(tweenDuration), {BackgroundColor3 = Color3.fromRGB(0, 210, 110)}):Play()
                         else
-                            OptBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255) -- Hover flash placeholder
                             OptBtn.Text = "      " .. opt
                             OptBtn.TextColor3 = Color3.fromRGB(150, 150, 160)
-                            indicator.BackgroundColor3 = Color3.fromRGB(40, 45, 55)
-                            TweenService:Create(OptBtn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(25, 30, 38)}):Play()
+                            TweenService:Create(OptBtn, TweenInfo.new(tweenDuration), {BackgroundColor3 = Color3.fromRGB(25, 30, 38)}):Play()
+                            TweenService:Create(indicator, TweenInfo.new(tweenDuration), {BackgroundColor3 = Color3.fromRGB(40, 45, 55)}):Play()
                         end
                         updateUIStatus()
                     end)
