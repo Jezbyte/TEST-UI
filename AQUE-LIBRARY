@@ -1,4 +1,4 @@
--- [[ AQUE || PRIVATE UI LIBRARY - FIXED & TESTED VERSION ]] --
+-- [[ AQUE || PRIVATE UI LIBRARY - DYNAMIC DROPDOWN UPDATE ]] --
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local TextService = game:GetService("TextService")
@@ -10,7 +10,6 @@ local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 local MAIN_LOGO_ASSET = "rbxassetid://117579773785891"
 
--- Linisin ang lumang UI para maiwasan ang pumatong na instances
 if PlayerGui:FindFirstChild("AqueLibrary") then
     PlayerGui.AqueLibrary:Destroy()
 end
@@ -195,17 +194,17 @@ function Library:CreateWindow(titleText)
                 toggleState = not toggleState
                 local targetPos = toggleState and UDim2.new(1, -16, 0.5, -7) or UDim2.new(0, 2, 0.5, -7)
                 local targetColor = toggleState and Color3.fromRGB(0, 210, 110) or Color3.fromRGB(45, 50, 60)
-                -- FIXED SYNTAX HERE: Corrected EasingStyle.Quart implementation
                 TweenService:Create(Knob, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = targetPos}):Play()
                 TweenService:Create(SwitchBg, TweenInfo.new(0.2), {BackgroundColor3 = targetColor}):Play()
                 pcall(callback, toggleState)
             end)
         end
 
-        -- [[ 3. RESTORED ORIGINAL DROPDOWN COMPONENT ]]
+        -- [[ 3. DROPDOWN COMPONENT WITH REFRESH ENGINE ]]
         function Elements:AddDropdown(text, options, default, callback)
             local currentChoice = default or "Select..."
             local isOpen = false
+            local currentOptions = options or {}
             
             local DropdownFrame = Instance.new("Frame")
             DropdownFrame.Size = UDim2.new(1, -6, 0, 32)
@@ -246,7 +245,6 @@ function Library:CreateWindow(titleText)
             Arrow.Parent = MainBtn
 
             local OptionsContainer = Instance.new("Frame")
-            OptionsContainer.Size = UDim2.new(1, -10, 0, #options * 28)
             OptionsContainer.Position = UDim2.new(0, 5, 0, 32)
             OptionsContainer.BackgroundTransparency = 1
             OptionsContainer.Parent = DropdownFrame
@@ -256,36 +254,68 @@ function Library:CreateWindow(titleText)
             OptionLayout.Padding = UDim.new(0, 2)
             OptionLayout.Parent = OptionsContainer
 
+            local function updateFrameSize()
+                OptionsContainer.Size = UDim2.new(1, -10, 0, #currentOptions * 28)
+                if isOpen then
+                    local targetHeight = 36 + (#currentOptions * 30)
+                    DropdownFrame.Size = UDim2.new(1, -6, 0, targetHeight)
+                else
+                    DropdownFrame.Size = UDim2.new(1, -6, 0, 32)
+                end
+                UpdateCanvas()
+            end
+
             local function toggleDropdown()
                 isOpen = not isOpen
-                local targetHeight = isOpen and (36 + (#options * 30)) or 32
                 local targetRot = isOpen and 180 or 0
-                TweenService:Create(DropdownFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, -6, 0, targetHeight)}):Play()
                 TweenService:Create(Arrow, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Rotation = targetRot}):Play()
-                task.delay(0.1, UpdateCanvas)
+                updateFrameSize()
             end
 
             MainBtn.MouseButton1Click:Connect(toggleDropdown)
 
-            for i, opt in ipairs(options) do
-                local OptBtn = Instance.new("TextButton")
-                OptBtn.Size = UDim2.new(1, 0, 0, 28)
-                OptBtn.BackgroundColor3 = Color3.fromRGB(25, 30, 38)
-                OptBtn.Text = "     " .. opt
-                OptBtn.TextColor3 = Color3.fromRGB(160, 160, 170)
-                OptBtn.TextSize = 11
-                OptBtn.Font = Enum.Font.GothamMedium
-                OptBtn.TextXAlignment = Enum.TextXAlignment.Left
-                OptBtn.Parent = OptionsContainer
-                Instance.new("UICorner", OptBtn).CornerRadius = UDim.new(0, 4)
+            local DropdownObject = {}
 
-                OptBtn.MouseButton1Click:Connect(function()
-                    currentChoice = opt
-                    SelectedLabel.Text = ": " .. currentChoice
-                    pcall(callback, opt)
-                    toggleDropdown()
-                end)
+            -- Core function to render buttons inside container
+            local function buildOptions()
+                for _, child in ipairs(OptionsContainer:GetChildren()) do
+                    if child:IsA("TextButton") then child:Destroy() end
+                end
+
+                for i, opt in ipairs(currentOptions) do
+                    local OptBtn = Instance.new("TextButton")
+                    OptBtn.Size = UDim2.new(1, 0, 0, 28)
+                    OptBtn.BackgroundColor3 = Color3.fromRGB(25, 30, 38)
+                    OptBtn.Text = "     " .. opt
+                    OptBtn.TextColor3 = Color3.fromRGB(160, 160, 170)
+                    OptBtn.TextSize = 11
+                    OptBtn.Font = Enum.Font.GothamMedium
+                    OptBtn.TextXAlignment = Enum.TextXAlignment.Left
+                    OptBtn.Parent = OptionsContainer
+                    Instance.new("UICorner", OptBtn).CornerRadius = UDim.new(0, 4)
+
+                    OptBtn.MouseButton1Click:Connect(function()
+                        currentChoice = opt
+                        SelectedLabel.Text = ": " .. currentChoice
+                        pcall(callback, opt)
+                        toggleDropdown()
+                    end)
+                end
+                updateFrameSize()
             end
+
+            -- [[ REFRESH / UPDATE ENGINE METHOD ]]
+            function DropdownObject:Refresh(newOptions, resetSelection)
+                currentOptions = newOptions or {}
+                if resetSelection then
+                    currentChoice = "Select..."
+                    SelectedLabel.Text = ": " .. currentChoice
+                end
+                buildOptions()
+            end
+
+            buildOptions()
+            return DropdownObject
         end
 
         -- [[ 4. 20x COOLER SLIDER ]]
