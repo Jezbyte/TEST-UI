@@ -1,4 +1,4 @@
--- [[ AQUE || PRIVATE UI LIBRARY - SMOOTH DROPDOWN OPEN/CLOSE ANIMATION ]] --
+-- [[ AQUE || PRIVATE UI LIBRARY - SMART MULTI-DROPDOWN REFRESH STABLE ]] --
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local TextService = game:GetService("TextService")
@@ -203,7 +203,7 @@ function Library:CreateWindow(titleText)
             end)
         end
 
-        -- [[ 3. DROPDOWN (SINGLE-SELECT - RESTORED SMOOTH OPEN/CLOSE TWEEN) ]]
+        -- [[ 3. DROPDOWN (SINGLE-SELECT) ]]
         function Elements:AddDropdown(text, options, default, callback)
             local currentChoice = default or "Select..."
             local isOpen = false
@@ -257,7 +257,6 @@ function Library:CreateWindow(titleText)
             OptionLayout.Padding = UDim.new(0, 2)
             OptionLayout.Parent = OptionsContainer
 
-            -- SMOOTH TWEEN SIZE UPDATER (SMOOTH SLIDING)
             local function updateFrameSize()
                 OptionsContainer.Size = UDim2.new(1, -10, 0, #currentOptions * 28)
                 local targetHeight = isOpen and (36 + (#currentOptions * 30)) or 32
@@ -266,7 +265,6 @@ function Library:CreateWindow(titleText)
                 local sizeTween = TweenService:Create(DropdownFrame, tweenInfo, {Size = UDim2.new(1, -6, 0, targetHeight)})
                 sizeTween:Play()
                 
-                -- Sinisiguro nito na sumasabay ang canvas scrolling sa dulas ng animation
                 local connection
                 connection = RunService.RenderStepped:Connect(function()
                     if sizeTween.PlaybackState == Enum.PlaybackState.Playing then
@@ -328,7 +326,7 @@ function Library:CreateWindow(titleText)
             return DropdownObject
         end
 
-        -- [[ 4. MULTI-SELECT DROPDOWN COMPONENT (RESTORED SMOOTH OPEN/CLOSE TWEEN) ]]
+        -- [[ 4. MULTI-SELECT DROPDOWN COMPONENT (FIXED REFRESH CHECKS MEMORY) ]]
         function Elements:AddMultiDropdown(text, options, defaultList, callback)
             local selectedItems = {}
             local currentOptions = options or {}
@@ -400,7 +398,6 @@ function Library:CreateWindow(titleText)
                 pcall(callback, list)
             end
 
-            -- SMOOTH TWEEN SIZE UPDATER (SMOOTH SLIDING)
             local function updateFrameSize()
                 OptionsContainer.Size = UDim2.new(1, -10, 0, #currentOptions * 28)
                 local targetHeight = isOpen and (36 + (#currentOptions * 30)) or 32
@@ -469,9 +466,35 @@ function Library:CreateWindow(titleText)
                 updateFrameSize()
             end
 
+            -- STABLE REFRESH FUNCTION WITH STATE PRESERVATION
             function MultiObject:Refresh(newOptions, resetSelection)
-                currentOptions = newOptions or {}
-                if resetSelection then selectedItems = {} end
+                local updatedSelections = {}
+                newOptions = newOptions or {}
+                
+                if resetSelection then
+                    -- Gagawa ng lookup table para sa mabilis na paghahanap ng bagong options
+                    local optionsLookup = {}
+                    for _, opt in ipairs(newOptions) do
+                        optionsLookup[opt] = true
+                    end
+                    
+                    -- Titignan kung ang dating pinili ay kasama pa rin sa bagong data list
+                    for item, isChecked in pairs(selectedItems) do
+                        if isChecked and optionsLookup[item] then
+                            updatedSelections[item] = true
+                        end
+                    end
+                    selectedItems = updatedSelections
+                else
+                    -- Kung false ang resetSelection, pananatilihin ang buong table data gaya ng dati
+                    for _, opt in ipairs(newOptions) do
+                        if selectedItems[opt] == nil then
+                            selectedItems[opt] = false
+                        end
+                    end
+                end
+                
+                currentOptions = newOptions
                 buildList()
                 updateUIStatus()
             end
